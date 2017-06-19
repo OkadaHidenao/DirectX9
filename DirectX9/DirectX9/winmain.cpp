@@ -4,6 +4,9 @@
 
 #include <tchar.h>
 
+
+#include"Direct3D.h"
+
 //ウィンドウプロシージャ
 LRESULT CALLBACK WndPrc
 (
@@ -260,5 +263,8 @@ int _stdcall WinMain
 		MB_OK);				//メッセージボックスのタイプ
 							//MB_OK  okのボタンが表示
 
+
+	//Direct3Dを管理するクラス（シングルトン）への参照を取得
+	Direct3D& d3D= Direct3D::GetInstance();
 	return 0;
 }
