@@ -6,7 +6,7 @@
 
 //ライブラリファイルの読み込み
 //Direct3D関係
-#pragma comment(lib,"d3d9lib")
+#pragma comment(lib,"d3d9.lib")
 #pragma comment(lib,"d3dx9.lib")
 #pragma comment(lib,"d3dxof.lib")
 #pragma comment(lib,"dxguid.lib")
@@ -34,7 +34,7 @@ private:
 	void operator=(const Direct3D& obj) {};//代入演算
 
 	//唯一のオブジェクトを指すポインタ
-	static Direct3D* pInstance = nullptr;
+	static Direct3D* pInstance;
 
 public:
 
@@ -50,7 +50,7 @@ public:
 	}
 
 	//作成した唯一のインスタンスを破棄する
-	static void DestroInstance();
+	static void DestroInstance()
 	{
 		if (pInstance != nullptr)
 		{

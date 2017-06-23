@@ -66,4 +66,90 @@ bool Direct3D::Create(HWND hWnd)
 
 	//Direct3D9オブジェクトの作成
 	pD3D9 = Direct3DCreate9(D3D_SDK_VERSION);
+
+	//ディスプレイ情報を取得
+	D3DDISPLAYMODE Display;
+	pD3D9->GetAdapterDisplayMode(D3DADAPTER_DEFAULT, &Display);
+
+	//スワップチェインのための設定
+	//スワップチェイン
+	//スクリーンのバックバッファをフロントに置き換える処理のこと
+
+	D3DPRESENT_PARAMETERS D3DParam;
+	D3DParam.BackBufferWidth = width;				//バックバッファの幅　クライアント領域と同じ幅
+	D3DParam.BackBufferHeight = height;				//バックバッファの高さ
+	D3DParam.BackBufferFormat = Display.Format;		//バックバッファのフォーマット
+													//ディスプレイ情報より
+	D3DParam.BackBufferCount = 1;					//バックバッファの数
+	D3DParam.MultiSampleType = D3DMULTISAMPLE_NONE;	//マルチサンプリングの設定
+													//なし
+	D3DParam.MultiSampleQuality = 0;				//マルチサンプリングのクオリティ
+	D3DParam.SwapEffect = D3DSWAPEFFECT_DISCARD;	//スワップチェインの方法
+													//Direct3D任せ
+	D3DParam.hDeviceWindow = hWnd;					//描画するウィンドウの識別ハンドル
+	D3DParam.Windowed = TRUE;						//ウィンドウモード
+	D3DParam.EnableAutoDepthStencil = TRUE;			//深度ステンシルバッファ　Zバッファ
+													//描画の際　すでに手前のものが書かれていると奥のものの描画を省くための情報
+													//スクリーンに色ではなくそのピクセルに書かれたものの
+													//カメラからの距離が入っているとイメージするとよい
+	D3DParam.AutoDepthStencilFormat = D3DFMT_D24S8;	//深度ステンシルのフォーマット
+	D3DParam.Flags = 0;								//設定のフラグ
+	D3DParam.FullScreen_RefreshRateInHz = 0;		//ウィンドウモードは使用しないので0
+	D3DParam.PresentationInterval = D3DPRESENT_INTERVAL_DEFAULT;
+	//アダプタのリフレッシュレートとpresent処理を実行すりレートの関係
+
+	//いくつかの設定でデバイス作成を試みる
+	//HALモードで作成
+	if (FAILED(pD3D9->CreateDevice(
+		D3DADAPTER_DEFAULT,
+		D3DDEVTYPE_HAL,
+		D3DParam.hDeviceWindow,
+		D3DCREATE_HARDWARE_VERTEXPROCESSING | D3DCREATE_MULTITHREADED,
+		&D3DParam, &pDevice3D)
+	))
+	{
+		//一つ目の設定で失敗したら
+		if (FAILED(pD3D9->CreateDevice(
+			D3DADAPTER_DEFAULT,
+			D3DDEVTYPE_HAL,
+			D3DParam.hDeviceWindow,
+			D3DCREATE_MIXED_VERTEXPROCESSING | D3DCREATE_MULTITHREADED,
+			//一つ目の設定から　HARDWEAR->MIXED
+			&D3DParam, &pDevice3D)
+		))
+		{
+			//二つ目の設定で失敗したら
+			if (FAILED(pD3D9->CreateDevice(
+				D3DADAPTER_DEFAULT,
+				D3DDEVTYPE_REF,			//一つ目の設定からHAL->REF
+				D3DParam.hDeviceWindow,
+				D3DCREATE_HARDWARE_VERTEXPROCESSING | D3DCREATE_MULTITHREADED,
+				&D3DParam, &pDevice3D)
+			))
+			{
+				if (FAILED(pD3D9->CreateDevice(
+					D3DADAPTER_DEFAULT,
+					D3DDEVTYPE_REF,
+					D3DParam.hDeviceWindow,
+					D3DCREATE_MIXED_VERTEXPROCESSING | D3DCREATE_MULTITHREADED,
+					//三つ目の設定からHARDWARE->SOFTWARE
+					&D3DParam, &pDevice3D)
+				))
+				{
+					//４つすべての設定で作成が失敗したら
+
+					//解放処理をして失敗扱いで関数を終える
+					pD3D9->Release();
+					pD3D9 = NULL;
+					pDevice3D = NULL;
+
+					return false;
+				}
+			}
+		}
+	}
+
+
+	//ここに来たということはどれかの設定でデバイスの作成が成功した
+	return true;
 }

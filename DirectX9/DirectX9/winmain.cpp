@@ -265,6 +265,17 @@ int _stdcall WinMain
 
 
 	//Direct3Dを管理するクラス（シングルトン）への参照を取得
-	Direct3D& d3D= Direct3D::GetInstance();
+	Direct3D& d3d= Direct3D::GetInstance();
+
+	//Direct3DDeviceの作成を試みる
+	if (d3d.TryCreate(hWnd))
+	{
+		MessageBox(NULL,
+			TEXT("Direct3D Device作成成功"),
+			TEXT("テストータイトル"),
+			MB_OK);
+	}
+
+
 	return 0;
 }
