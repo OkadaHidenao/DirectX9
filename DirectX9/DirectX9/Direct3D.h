@@ -19,6 +19,26 @@
 
 #include<tchar.h>
 
+//板ポリゴンの頂点情報（１頂点分の情報）
+//SpriteFVFの内容と合わせる必要がある　FVFは頂点構造体の構成情報が保存されたもの
+//MSDNの頂点フォーマットのページなど参照
+struct SpriteVertex
+{
+	//メンバの宣言の順番もFVFによってきまるので
+
+	//三次元座標
+	D3DXVECTOR3 pos;
+	//スクリーン座標に変換済みかどうかを表すグラフ
+	//なら頂点なら頂点シェーダでの変換が行われない
+	float rhw;
+	//この頂点とテクスチャ中の座標の対応付け
+	float u, v;
+
+};
+
+static const DWORD SPRITE_FVF
+= D3DFVF_XYZRHW | D3DFVF_TEX1;
+
 
 //シングルトンなクラス
 //インスタンスが一つしか作られないことを保証するクラス
@@ -81,6 +101,19 @@ public:
 	//失敗するとfalseが返るようにする
 	bool TryCreate(HWND hWnd);
 
-	
+	//beginとendの間で行われた
 
+	//描画開始の合図をDirectXへを繰る
+	HRESULT BeginScene();
+	//描画終了の合図をDirectXへ送る
+	HRESULT EndScene();
+	
+	//バックバッファのクリア
+	HRESULT ClearScreen();
+
+	//バックバッファをフロント画面に反映
+	HRESULT Present();
+
+	//スプライトの描画
+	void DrawSprite();
 };

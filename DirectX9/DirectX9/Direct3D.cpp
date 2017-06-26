@@ -153,3 +153,63 @@ bool Direct3D::Create(HWND hWnd)
 	//ここに来たということはどれかの設定でデバイスの作成が成功した
 	return true;
 }
+
+HRESULT Direct3D::BeginScene()
+{
+	if (pDevice3D != nullptr)
+	{
+		//Direct3DデバイスのBeginSeneを実行
+		return pDevice3D->BeginScene();
+	}
+	else
+	{
+		return S_FALSE;
+	}
+}
+
+HRESULT Direct3D::EndScene()
+{
+	if (pDevice3D != nullptr)
+	{
+		//Direct3DデバイスのEndSeneを実行
+		return pDevice3D->EndScene();
+	}
+	else
+	{
+		return S_FALSE;
+	}
+}
+
+//バックバッファのクリア
+HRESULT Direct3D::ClearScreen()
+{
+	if (pDevice3D != nullptr)
+	{
+		//背景のクリア職
+		//何も描画されていない状態だとこの色が一面に出る
+		D3DXCOLOR Color = D3DCOLOR_XRGB(0, 128, 0);
+
+		//Clearの実行結果を返す
+		return pDevice3D->Clear(0, NULL,
+			//クリアのターゲットとなるバッファを指定
+			D3DCLEAR_TARGET | D3DCLEAR_STENCIL | D3DCLEAR_ZBUFFER
+			, Color, 1.0f, 0);
+	}
+	else
+	{
+		return S_FALSE;
+	}
+}
+
+//バックバッファをフロントに反映
+HRESULT Direct3D::Present()
+{
+	if (pDevice3D != nullptr)
+	{
+		return pDevice3D->Present(NULL, NULL, NULL, NULL);
+	}
+	else
+	{
+		return S_FALSE;
+	}
+}

@@ -277,5 +277,73 @@ int _stdcall WinMain
 	}
 
 
+	//メインループ
+	//メッセージループ
+
+	MSG msg = {};
+
+	//quitメッセージが出てくるまでループを繰り返す
+	//quitメッセージは上記のウィンドウプロシージャから送信
+	//送信の条件などはウィンドウプロシージャを確認
+	while (msg.message != WM_QUIT)
+	{
+		//PeekMessage
+		//メッセージキューの中にメッセージがあるかを調べてmsgの中に書き込みtrueを返す
+		//メッセージがなければfalseを返す
+		//PM_REMOVEを設定しているとメッセージの書き込みの後にメッセージキューから元のメッセージを消す
+		
+		if (PeekMessage(&msg, NULL,0, 0, PM_REMOVE))
+		{
+			//仮想キーメッセージを文字メッセージに変換しそれをメッセージキューにポストする
+			TranslateMessage(&msg);
+
+			//メッセージの割り当て
+			//ウィンドウプロシージャでメッセージを処理
+			DispatchMessage(&msg);
+		}
+		else
+		{
+			//メッセージキューにメッセージがなかった時にこちらの処理
+			//ここにゲームの処理を書き込んでいく
+
+
+			//描画処理
+			if (SUCCEEDED(d3d.BeginScene()))
+			{
+				//バックバッファのクリア
+				d3d.ClearScreen();
+
+				//描画終了の合図
+				d3d.EndScene();
+				//バックバッファをフロントへ反映
+				d3d.Present();
+			}
+		}
+
+	}
+
+
+
+
 	return 0;
+}
+
+
+void Direct3D::DrawSprite()
+{
+	//デバイスが作成されていなければ
+	//描画の処理に入らずreturnする
+	if (pDevice3D == nullptr)return;
+
+	//四角形なので頂点４つ
+	//トライアングルストリップを使用するのでvertexに格納する順番は　右上　右下　左上　左下
+	SpriteVertex vertec[4];=
+	{
+		{D3DXVECTOR3(200,100,0),1.0f,1.0f,0.0f},
+		{D3DXVECTOR3(200,200,0),1.0f,1.0f,1.0f},
+		{D3DXVECTOR3(100,100,0),1.0f,0.0f,0.0f},
+		{D3DXVECTOR3(100,200,0),1.0f,0.0f,1.0f},
+	}
+
+
 }
