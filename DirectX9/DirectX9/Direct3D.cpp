@@ -1,7 +1,8 @@
-#include"Direct3D.h"
+#include "Direct3D.h"
 
 //スタティックなメンバ変数の初期化
 Direct3D* Direct3D::pInstance = nullptr;
+
 
 //コンストラクタ
 Direct3D::Direct3D()
@@ -31,6 +32,7 @@ void Direct3D::Release()
 	}
 }
 
+//デバイスの作成を試みる
 bool Direct3D::TryCreate(HWND hWnd)
 {
 	if (pDevice3D != nullptr)
@@ -38,7 +40,7 @@ bool Direct3D::TryCreate(HWND hWnd)
 		//すでに作成されているので失敗
 		return false;
 	}
-
+	
 	//作成の関数を呼ぶ
 	if (!Create(hWnd))
 	{
@@ -53,15 +55,15 @@ bool Direct3D::TryCreate(HWND hWnd)
 //TryCreate関数から呼ぶ
 bool Direct3D::Create(HWND hWnd)
 {
-	//バックバッファ（裏画面）の大きさを計算
-	//ウィンドウのクライアント領域の大きさに合わせる
+	//バックバッファ(裏画面)のおおきさを計算
+	//ウィンドウのクライアント領域のおおきさに合わせる
 
-	//クライアント領域の大きさを調べる
+	//クライアント領域のおおきさを調べる
 	RECT rect;
 	GetClientRect(hWnd, &rect);
 
 	//バックバッファの幅と高さ
-	int width = rect.right-rect.left;
+	int width  = rect.right  - rect.left;
 	int height = rect.bottom - rect.top;
 
 	//Direct3D9オブジェクトの作成
@@ -71,12 +73,13 @@ bool Direct3D::Create(HWND hWnd)
 	D3DDISPLAYMODE Display;
 	pD3D9->GetAdapterDisplayMode(D3DADAPTER_DEFAULT, &Display);
 
-	//スワップチェインのための設定
-	//スワップチェイン
-	//スクリーンのバックバッファをフロントに置き換える処理のこと
+	//スワップチェインの為の設定
+	//スワップチェイン　
+	//スクリーンのバックバッファを
+	//フロントバッファに置き換える処理のこと
 
 	D3DPRESENT_PARAMETERS D3DParam;
-	D3DParam.BackBufferWidth = width;				//バックバッファの幅　クライアント領域と同じ幅
+	D3DParam.BackBufferWidth = width;				//バックバッファの幅　クライアント領域と同じ
 	D3DParam.BackBufferHeight = height;				//バックバッファの高さ
 	D3DParam.BackBufferFormat = Display.Format;		//バックバッファのフォーマット
 													//ディスプレイ情報より
@@ -89,14 +92,16 @@ bool Direct3D::Create(HWND hWnd)
 	D3DParam.hDeviceWindow = hWnd;					//描画するウィンドウの識別ハンドル
 	D3DParam.Windowed = TRUE;						//ウィンドウモード
 	D3DParam.EnableAutoDepthStencil = TRUE;			//深度ステンシルバッファ　Zバッファ
-													//描画の際　すでに手前のものが書かれていると奥のものの描画を省くための情報
+													//描画の際　すでに手前のものが書かれていると
+													//奥のものの描画を省くための情報　
 													//スクリーンに色ではなくそのピクセルに書かれたものの
-													//カメラからの距離が入っているとイメージするとよい
+													//カメラからの距離が入っているとイメージすると良い
 	D3DParam.AutoDepthStencilFormat = D3DFMT_D24S8;	//深度ステンシルのフォーマット
 	D3DParam.Flags = 0;								//設定のフラグ
 	D3DParam.FullScreen_RefreshRateInHz = 0;		//ウィンドウモードは使用しないので0
+
 	D3DParam.PresentationInterval = D3DPRESENT_INTERVAL_DEFAULT;
-	//アダプタのリフレッシュレートとpresent処理を実行すりレートの関係
+	//アダプタのリフレッシュレートとpresent処理を実行するレートの関係
 
 	//いくつかの設定でデバイス作成を試みる
 	//HALモードで作成
@@ -108,37 +113,39 @@ bool Direct3D::Create(HWND hWnd)
 		&D3DParam, &pDevice3D)
 	))
 	{
-		//一つ目の設定で失敗したら
+		//1つ目の設定で失敗したら
 		if (FAILED(pD3D9->CreateDevice(
 			D3DADAPTER_DEFAULT,
 			D3DDEVTYPE_HAL,
 			D3DParam.hDeviceWindow,
 			D3DCREATE_MIXED_VERTEXPROCESSING | D3DCREATE_MULTITHREADED,
-			//一つ目の設定から　HARDWEAR->MIXED
+			//一つ目の設定から HARDWARE -> MIXED
 			&D3DParam, &pDevice3D)
 		))
 		{
-			//二つ目の設定で失敗したら
+			//2つ目の設定で失敗したら
 			if (FAILED(pD3D9->CreateDevice(
 				D3DADAPTER_DEFAULT,
-				D3DDEVTYPE_REF,			//一つ目の設定からHAL->REF
+				D3DDEVTYPE_REF,		//一つ目の設定から HAL -> REF
 				D3DParam.hDeviceWindow,
 				D3DCREATE_HARDWARE_VERTEXPROCESSING | D3DCREATE_MULTITHREADED,
 				&D3DParam, &pDevice3D)
 			))
 			{
+				//3つ目の設定で失敗したら
 				if (FAILED(pD3D9->CreateDevice(
 					D3DADAPTER_DEFAULT,
 					D3DDEVTYPE_REF,
 					D3DParam.hDeviceWindow,
 					D3DCREATE_MIXED_VERTEXPROCESSING | D3DCREATE_MULTITHREADED,
-					//三つ目の設定からHARDWARE->SOFTWARE
+					//3つ目の設定から HARDWARE -> MIXED
 					&D3DParam, &pDevice3D)
 				))
 				{
-					//４つすべての設定で作成が失敗したら
+					//4つ全ての設定で作成が失敗したら
 
-					//解放処理をして失敗扱いで関数を終える
+					//解放処理をして
+					//失敗扱いで関数を終える
 					pD3D9->Release();
 					pD3D9 = NULL;
 					pDevice3D = NULL;
@@ -149,16 +156,59 @@ bool Direct3D::Create(HWND hWnd)
 		}
 	}
 
-
 	//ここに来たということはどれかの設定でデバイスの作成が成功した
 	return true;
+
+}
+
+//描画の設定
+void Direct3D::SetRenderState(RENDERSTATE state)
+{
+	//デバイスが作成されていないなら中断
+	if (pDevice3D == nullptr)return ;
+
+	switch (state)
+	{
+		case RENDER_DEFAULT:
+			pDevice3D->SetRenderState(D3DRS_ALPHATESTENABLE, false);//αテスト無効
+			pDevice3D->SetRenderState(D3DRS_ALPHABLENDENABLE, false);//αブレンド無効
+
+			break;
+		case RENDER_ALPHATEST:
+			//透明部分の切り抜き
+			//α値でそのピクセルを描画するかを判断する
+			//判断基準のα値はあらかじめ決めておく
+			pDevice3D->SetRenderState(D3DRS_ALPHATESTENABLE, true);//αテスト有効
+			pDevice3D->SetRenderState(D3DRS_ALPHABLENDENABLE, false);//αブレンド無効
+			pDevice3D->SetRenderState(D3DRS_ALPHAREF, 0x80);//判断基準値
+			pDevice3D->SetRenderState(D3DRS_ALPHAFUNC, D3DCMP_GREATEREQUAL);//基準値以上で描画
+
+			break;
+		case RENDER_ALPHABLEND:
+			//半透明描画
+
+			pDevice3D->SetRenderState(D3DRS_ALPHATESTENABLE, false);//αテスト無効
+			pDevice3D->SetRenderState(D3DRS_ALPHABLENDENABLE, true);//αブレンド有効
+
+			//ブレンド係数　今から描画するピクセル色に対するもの
+			pDevice3D->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);		
+			//ブレンド係数	既にバックバッファに書かれているピクセル色に対するもの
+			pDevice3D->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);	
+			
+			//最終的な描画色　＝　
+			//	SRC色×ブレンディング係数（SRC)　＋　DEST色×ブレンディング係数（DEST）
+
+			break;	
+	}
+
+
 }
 
 HRESULT Direct3D::BeginScene()
-{
+{	
 	if (pDevice3D != nullptr)
 	{
-		//Direct3DデバイスのBeginSeneを実行
+		//Direct3DデバイスのBegineSceneを実行
 		return pDevice3D->BeginScene();
 	}
 	else
@@ -171,7 +221,7 @@ HRESULT Direct3D::EndScene()
 {
 	if (pDevice3D != nullptr)
 	{
-		//Direct3DデバイスのEndSeneを実行
+		//Direct3DデバイスのEndSceneを実行
 		return pDevice3D->EndScene();
 	}
 	else
@@ -181,11 +231,11 @@ HRESULT Direct3D::EndScene()
 }
 
 //バックバッファのクリア
-HRESULT Direct3D::ClearScreen()
+HRESULT  Direct3D::ClearScreen()
 {
 	if (pDevice3D != nullptr)
 	{
-		//背景のクリア職
+		//背景のクリア色
 		//何も描画されていない状態だとこの色が一面に出る
 		D3DXCOLOR Color = D3DCOLOR_XRGB(0, 128, 0);
 
@@ -212,4 +262,41 @@ HRESULT Direct3D::Present()
 	{
 		return S_FALSE;
 	}
+		
+}
+
+void Direct3D::DrawSprite()
+{
+	//デバイスが作成されていなければ
+	//描画の処理に入らずreturnする
+	if (pDevice3D == nullptr)return;
+
+	//四角形なので頂点4つ
+	//トライアングルストリップを使用するので
+	//vertexに格納する順番は 右上　右下　左上　左下
+	SpriteVertex vertex[4]=
+	{
+		//			　x   y   z	 rhw	頂点色		赤　緑　青　透明　u	  v
+		{ D3DXVECTOR3(200,100,0),1.0f,D3DCOLOR_RGBA(255,  0,  0,128),1.0f,0.0f },
+		{ D3DXVECTOR3(200,200,0),1.0f,D3DCOLOR_RGBA(  0,255,  0,128),1.0f,1.0f },
+		{ D3DXVECTOR3(100,100,0),1.0f,D3DCOLOR_RGBA(  0,  0,255,128),0.0f,0.0f },
+		{ D3DXVECTOR3(100,200,0),1.0f,D3DCOLOR_RGBA(  0,  0,  0,0),0.0f,1.0f }
+	};
+
+	//テクスチャは未設定で
+	pDevice3D->SetTexture(0, NULL);
+
+	//頂点構造体宣言
+	pDevice3D->SetFVF(SPRITE_FVF);
+
+	//ポリゴンの描画
+	//トライアングルストリップで描画
+
+	//引数 (描画タイプ,
+		//三角形の数,
+		//頂点構造体配列の先頭アドレス,
+		//ひとつの頂点構造体のサイズ);
+	pDevice3D->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, 2, 
+		vertex, sizeof(SpriteVertex));
+
 }

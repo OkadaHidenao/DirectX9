@@ -7,6 +7,7 @@
 
 #include"Direct3D.h"
 
+
 //ウィンドウプロシージャ
 LRESULT CALLBACK WndPrc
 (
@@ -256,26 +257,21 @@ int _stdcall WinMain
 			MB_OK);
 		return 0;
 	}
-
-	MessageBox(NULL,		//ウィンドウのハンドル 
-		TEXT("テスト"),		//本文
-		TEXT("テスト-タイトル"),//タイトル
-		MB_OK);				//メッセージボックスのタイプ
-							//MB_OK  okのボタンが表示
-
-
-	//Direct3Dを管理するクラス（シングルトン）への参照を取得
-	Direct3D& d3d= Direct3D::GetInstance();
+	
+	//Direct3Dを管理するクラス(シングルトン)への参照を取得
+	Direct3D& d3d = Direct3D::GetInstance();
 
 	//Direct3DDeviceの作成を試みる
 	if (d3d.TryCreate(hWnd))
 	{
 		MessageBox(NULL,
 			TEXT("Direct3D Device作成成功"),
-			TEXT("テストータイトル"),
+			TEXT("テスト-タイトル"),
 			MB_OK);
 	}
 
+	//レンダーステートの設定  αブレンド
+	d3d.SetRenderState(RENDERSTATE::RENDER_ALPHABLEND);
 
 	//メインループ
 	//メッセージループ
@@ -288,13 +284,16 @@ int _stdcall WinMain
 	while (msg.message != WM_QUIT)
 	{
 		//PeekMessage
-		//メッセージキューの中にメッセージがあるかを調べてmsgの中に書き込みtrueを返す
+		//メッセージキューの中にメッセージがあるかを調べて
+		//msgの中に書き込みtrueを返す
 		//メッセージがなければfalseを返す
-		//PM_REMOVEを設定しているとメッセージの書き込みの後にメッセージキューから元のメッセージを消す
-		
-		if (PeekMessage(&msg, NULL,0, 0, PM_REMOVE))
+		//PM_REMOVEを設定しているとメッセージの書き込みのあとに
+		//メッセージキューから元のメッセージを消す
+
+		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
 		{
-			//仮想キーメッセージを文字メッセージに変換しそれをメッセージキューにポストする
+			//仮想キーメッセージを文字メッセージに変換し
+			//それをメッセージキューにポストする
 			TranslateMessage(&msg);
 
 			//メッセージの割り当て
@@ -303,9 +302,9 @@ int _stdcall WinMain
 		}
 		else
 		{
-			//メッセージキューにメッセージがなかった時にこちらの処理
-			//ここにゲームの処理を書き込んでいく
-
+			//メッセージキューにメッセージが無かったとき
+			//こちらの処理
+			//ここにゲーム処理を書き込んでいく
 
 			//描画処理
 			if (SUCCEEDED(d3d.BeginScene()))
@@ -313,37 +312,18 @@ int _stdcall WinMain
 				//バックバッファのクリア
 				d3d.ClearScreen();
 
+				//スプライトの描画
+				d3d.DrawSprite();
+
 				//描画終了の合図
 				d3d.EndScene();
 				//バックバッファをフロントへ反映
 				d3d.Present();
 			}
 		}
-
 	}
-
 
 
 
 	return 0;
-}
-
-
-void Direct3D::DrawSprite()
-{
-	//デバイスが作成されていなければ
-	//描画の処理に入らずreturnする
-	if (pDevice3D == nullptr)return;
-
-	//四角形なので頂点４つ
-	//トライアングルストリップを使用するのでvertexに格納する順番は　右上　右下　左上　左下
-	SpriteVertex vertec[4];=
-	{
-		{D3DXVECTOR3(200,100,0),1.0f,1.0f,0.0f},
-		{D3DXVECTOR3(200,200,0),1.0f,1.0f,1.0f},
-		{D3DXVECTOR3(100,100,0),1.0f,0.0f,0.0f},
-		{D3DXVECTOR3(100,200,0),1.0f,0.0f,1.0f},
-	}
-
-
 }
