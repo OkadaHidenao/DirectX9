@@ -61,6 +61,8 @@ enum RENDERSTATE
 //Direct3d.cppではSprite.hをインクルードする必要がある
 class Sprite;
 
+//上のSpriteクラスと同様の理由
+class Texture;
 
 //シングルトンなクラスにする
 //インスタンスがひとつしか作られないことを保証するクラス
@@ -140,6 +142,11 @@ public :
 	//バックバッファをフロント画面に反映
 	HRESULT Present();
 
+	//テクスチャのロード
+	//戻り値は成功したか失敗したか
+	//ロードが成功したら　texのメンバのpTextureにアドレスが割り当てられる
+	bool LoadTexture(Texture& tex, TCHAR*FilePath);
+
 	//スプライトの描画
-	void DrawSprite(Sprite& sprite);
+	void DrawSprite(Sprite& sprite,Texture& tex);
 };

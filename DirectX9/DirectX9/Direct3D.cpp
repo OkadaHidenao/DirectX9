@@ -1,6 +1,7 @@
 #include "Direct3D.h"
 
 #include"Sprite.h"
+#include"Texture.h"
 
 //スタティックなメンバ変数の初期化
 Direct3D* Direct3D::pInstance = nullptr;
@@ -268,7 +269,7 @@ HRESULT Direct3D::Present()
 		
 }
 
-void Direct3D::DrawSprite(Sprite& sprite)
+void Direct3D::DrawSprite(Sprite& sprite,Texture& tex)
 {
 	//デバイスが作成されていなければ
 	//描画の処理に入らずreturnする
@@ -282,16 +283,21 @@ void Direct3D::DrawSprite(Sprite& sprite)
 
 	char alphaC = static_cast<char>(255 * alpha);
 
+	float u = tex.numU;
+	float v = tex.numV;
+	float du = tex.divU;
+	float dv = tex.divV;
+
 	//四角形なので頂点4つ
 	//トライアングルストリップを使用するので
 	//vertexに格納する順番は 右上　右下　左上　左下
 	SpriteVertex vertex[4] =
 	{
 		//			　x   y   z	 rhw	頂点色		赤　緑　青　透明　u	  v
-		{ D3DXVECTOR3( width / 2 ,-height / 2,0),1.0f,D3DCOLOR_RGBA(255,255,255,alphaC),1.0f,0.0f },
-		{ D3DXVECTOR3( width / 2 , height / 2,0),1.0f,D3DCOLOR_RGBA(255,255,255,alphaC),1.0f,1.0f },
-		{ D3DXVECTOR3(-width / 2 ,-height / 2,0),1.0f,D3DCOLOR_RGBA(255,255,255,alphaC),0.0f,0.0f },
-		{ D3DXVECTOR3(-width / 2 , height / 2,0),1.0f,D3DCOLOR_RGBA(255,255,255,alphaC),0.0f,1.0f }
+		{ D3DXVECTOR3( width / 2 ,-height / 2,0),1.0f,D3DCOLOR_RGBA(255,255,255,alphaC),(u+1)/du,		v/dv },
+		{ D3DXVECTOR3( width / 2 , height / 2,0),1.0f,D3DCOLOR_RGBA(255,255,255,alphaC),(u+1)/du,	 (v+1)/dv},
+		{ D3DXVECTOR3(-width / 2 ,-height / 2,0),1.0f,D3DCOLOR_RGBA(255,255,255,alphaC),	u/du,		v/dv },
+		{ D3DXVECTOR3(-width / 2 , height / 2,0),1.0f,D3DCOLOR_RGBA(255,255,255,alphaC),	u/du,	(v+1)/dv }
 	};
 
 	float angle = sprite.GetAngle_Rad();
@@ -316,8 +322,8 @@ void Direct3D::DrawSprite(Sprite& sprite)
 
 	}
 
-	//テクスチャは未設定で
-	pDevice3D->SetTexture(0, NULL);
+	//テクスチャの指定
+	pDevice3D->SetTexture(0, tex.pTexture);
 
 	//頂点構造体宣言
 	pDevice3D->SetFVF(SPRITE_FVF);
@@ -332,4 +338,27 @@ void Direct3D::DrawSprite(Sprite& sprite)
 	pDevice3D->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, 2, 
 		vertex, sizeof(SpriteVertex));
 
+}
+
+//テクスチャのロード
+bool Direct3D::LoadTexture(Texture& tex, TCHAR* FilePath)
+{
+	//デバイスが作成されているかどうかの確認
+	if (pDevice3D != nullptr)
+	{
+		if (SUCCEEDED(
+			D3DXCreateTextureFromFile(
+				pDevice3D, FilePath, &(tex.pTexture)
+			)//createFromFile
+			)//succeeded
+			)//if
+		{
+			//ロードに成功した
+			return true;
+		}
+	}
+
+	//デバイスが存在しなかった
+	//存在したが作成に失敗した
+	return false;//失敗
 }

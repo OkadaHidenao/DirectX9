@@ -2,6 +2,8 @@
 
 #include "Direct3D.h"
 
+class Texture;
+
 class Sprite
 {
 	//Direct3Dからはメンバにアクセス可能にする
@@ -28,7 +30,7 @@ public:
 
 	void SetAlpha(float alpha);//透明度の設定
 
-	void Draw();//描画
+	void Draw(Texture& tex);//描画
 
 	//スプライトの中心座標の取得
 	D3DXVECTOR2 GetCentrePos()

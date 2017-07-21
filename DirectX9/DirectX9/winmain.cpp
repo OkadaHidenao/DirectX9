@@ -8,6 +8,7 @@
 #include"Direct3D.h"
 
 #include"Sprite.h"
+#include"Texture.h"
 
 //ウィンドウプロシージャ
 LRESULT CALLBACK WndPrc
@@ -280,6 +281,12 @@ int _stdcall WinMain
 	sprite.SetAngle(0);
 	sprite.SetPos(200, 200);
 
+	//テクスチャのインスタンスを作成
+	Texture texture;
+	texture.Load(_T("test.png"));//画像のロード
+	texture.SetDivide(2, 1);
+
+
 	//メインループ
 	//メッセージループ
 
@@ -339,7 +346,7 @@ int _stdcall WinMain
 				d3d.ClearScreen();
 
 				//スプライトの描画
-				sprite.Draw();
+				sprite.Draw(texture);
 
 				//描画終了の合図
 				d3d.EndScene();

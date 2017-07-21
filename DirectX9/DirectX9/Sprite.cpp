@@ -54,7 +54,7 @@ void Sprite::SetAlpha(float a)
 }
 
 //描画
-void Sprite::Draw()
+void Sprite::Draw(Texture& tex)
 {
 	//Direct3Dのインスタンスを取得
 	Direct3D& d3d =
@@ -64,5 +64,5 @@ void Sprite::Draw()
 	
 	//（*ポインタ）なので変数本体を示す
 	//参照として関数に渡す
-	d3d.DrawSprite(*this);
+	d3d.DrawSprite(*this,tex);
 }
