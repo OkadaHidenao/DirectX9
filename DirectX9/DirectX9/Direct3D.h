@@ -55,6 +55,12 @@ enum RENDERSTATE
 	RENDER_ALPHABLEND	//αブレンド
 };
 
+//使用するクラス名を宣言
+//Sprite.hをインクルードせずにクラスSpriteの名前を使う
+//名前以外の要素を使おうとするとエラー
+//Direct3d.cppではSprite.hをインクルードする必要がある
+class Sprite;
+
 
 //シングルトンなクラスにする
 //インスタンスがひとつしか作られないことを保証するクラス
@@ -135,5 +141,5 @@ public :
 	HRESULT Present();
 
 	//スプライトの描画
-	void DrawSprite();
+	void DrawSprite(Sprite& sprite);
 };

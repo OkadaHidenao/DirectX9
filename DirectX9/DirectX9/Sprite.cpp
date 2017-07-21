@@ -52,3 +52,17 @@ void Sprite::SetAlpha(float a)
 		alpha = a;
 	}
 }
+
+//描画
+void Sprite::Draw()
+{
+	//Direct3Dのインスタンスを取得
+	Direct3D& d3d =
+		Direct3D::GetInstance();
+
+	//this=自分へのポインタ
+	
+	//（*ポインタ）なので変数本体を示す
+	//参照として関数に渡す
+	d3d.DrawSprite(*this);
+}

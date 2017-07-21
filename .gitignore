@@ -6,7 +6,7 @@ Release/
 *.user
 *.sln.docstates
 
-*VC.db
+*.VC.db
 *.opendb
 
 *.ipch

@@ -7,6 +7,7 @@
 
 #include"Direct3D.h"
 
+#include"Sprite.h"
 
 //ウィンドウプロシージャ
 LRESULT CALLBACK WndPrc
@@ -273,6 +274,12 @@ int _stdcall WinMain
 	//レンダーステートの設定  αブレンド
 	d3d.SetRenderState(RENDERSTATE::RENDER_ALPHABLEND);
 
+	Sprite sprite;
+	sprite.SetAlpha(0.1);
+	sprite.SetSize(100, 100);
+	sprite.SetAngle(0);
+	sprite.SetPos(200, 200);
+
 	//メインループ
 	//メッセージループ
 
@@ -305,6 +312,25 @@ int _stdcall WinMain
 			//メッセージキューにメッセージが無かったとき
 			//こちらの処理
 			//ここにゲーム処理を書き込んでいく
+			sprite.SetAngle(sprite.GetAngle_Rad() + 0.1f);
+
+			static int dir = 1;
+			sprite.SetAlpha(sprite.GetAlpha() + (dir*0.01));
+			switch (dir)
+			{
+			case 1:
+				if (sprite.GetAlpha() >= 1)
+				{
+					dir = -1;
+				}
+				break;
+			case -1:
+				if (sprite.GetAlpha() <= 0)
+				{
+					dir = 1;
+				}
+				break;
+			}
 
 			//描画処理
 			if (SUCCEEDED(d3d.BeginScene()))
@@ -313,7 +339,7 @@ int _stdcall WinMain
 				d3d.ClearScreen();
 
 				//スプライトの描画
-				d3d.DrawSprite();
+				sprite.Draw();
 
 				//描画終了の合図
 				d3d.EndScene();

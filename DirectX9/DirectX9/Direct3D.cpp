@@ -1,7 +1,10 @@
 #include "Direct3D.h"
 
+#include"Sprite.h"
+
 //スタティックなメンバ変数の初期化
 Direct3D* Direct3D::pInstance = nullptr;
+
 
 
 //コンストラクタ
@@ -265,23 +268,53 @@ HRESULT Direct3D::Present()
 		
 }
 
-void Direct3D::DrawSprite()
+void Direct3D::DrawSprite(Sprite& sprite)
 {
 	//デバイスが作成されていなければ
 	//描画の処理に入らずreturnする
 	if (pDevice3D == nullptr)return;
 
+	//描画に使用する変数をspriteから取り出す
+	D3DXVECTOR2 pos = sprite.GetCentrePos();
+	float width = sprite.GetWidth();
+	float height = sprite.GetHeight();
+	float alpha = sprite.GetAlpha();
+
+	char alphaC = static_cast<char>(255 * alpha);
+
 	//四角形なので頂点4つ
 	//トライアングルストリップを使用するので
 	//vertexに格納する順番は 右上　右下　左上　左下
-	SpriteVertex vertex[4]=
+	SpriteVertex vertex[4] =
 	{
 		//			　x   y   z	 rhw	頂点色		赤　緑　青　透明　u	  v
-		{ D3DXVECTOR3(200,100,0),1.0f,D3DCOLOR_RGBA(255,  0,  0,128),1.0f,0.0f },
-		{ D3DXVECTOR3(200,200,0),1.0f,D3DCOLOR_RGBA(  0,255,  0,128),1.0f,1.0f },
-		{ D3DXVECTOR3(100,100,0),1.0f,D3DCOLOR_RGBA(  0,  0,255,128),0.0f,0.0f },
-		{ D3DXVECTOR3(100,200,0),1.0f,D3DCOLOR_RGBA(  0,  0,  0,0),0.0f,1.0f }
+		{ D3DXVECTOR3( width / 2 ,-height / 2,0),1.0f,D3DCOLOR_RGBA(255,255,255,alphaC),1.0f,0.0f },
+		{ D3DXVECTOR3( width / 2 , height / 2,0),1.0f,D3DCOLOR_RGBA(255,255,255,alphaC),1.0f,1.0f },
+		{ D3DXVECTOR3(-width / 2 ,-height / 2,0),1.0f,D3DCOLOR_RGBA(255,255,255,alphaC),0.0f,0.0f },
+		{ D3DXVECTOR3(-width / 2 , height / 2,0),1.0f,D3DCOLOR_RGBA(255,255,255,alphaC),0.0f,1.0f }
 	};
+
+	float angle = sprite.GetAngle_Rad();
+	
+	for (int i = 0; i < 4; i++)
+	{
+		//三角関数　加法定理を利用して4つの頂点の座標を変換
+		//原点を中心としてangleの分だけ回す
+		float x = vertex[i].pos.x*cosf(angle) -
+			vertex[i].pos.y*sinf(angle);
+
+		float y = vertex[i].pos.x*sinf(angle) +
+			vertex[i].pos.y*cosf(angle);
+
+		//中心座標分だけ平行移動
+		D3DXVECTOR3 vPos;
+		vPos.x = pos.x + x;
+		vPos.y = pos.y + y;
+		vPos.z = 0;
+		vertex[i].pos = vPos;
+
+
+	}
 
 	//テクスチャは未設定で
 	pDevice3D->SetTexture(0, NULL);

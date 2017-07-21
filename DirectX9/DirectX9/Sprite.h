@@ -28,5 +28,27 @@ public:
 
 	void SetAlpha(float alpha);//透明度の設定
 
+	void Draw();//描画
 
+	//スプライトの中心座標の取得
+	D3DXVECTOR2 GetCentrePos()
+	{return pos;}
+
+	//幅の取得
+	float GetWidth()
+	{return width;}
+
+	//高さの取得
+	float GetHeight()
+	{return height;}
+
+	//回転の取得
+	float GetAngle_Rad()
+	{return angle;}
+
+	//透明度
+	float GetAlpha()
+	{return alpha;}
+
+	
 };
