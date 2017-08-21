@@ -10,6 +10,8 @@
 #include"Sprite.h"
 #include"Texture.h"
 
+#include"DirectInput.h"
+
 //ウィンドウプロシージャ
 LRESULT CALLBACK WndPrc
 (
@@ -286,6 +288,8 @@ int _stdcall WinMain
 	texture.Load(_T("test.png"));//画像のロード
 	texture.SetDivide(2, 1);
 
+	DirectInput*pDi = DirectInput::GetInstansce();
+	pDi->Init(hWnd);
 
 	//メインループ
 	//メッセージループ
@@ -319,6 +323,18 @@ int _stdcall WinMain
 			//メッセージキューにメッセージが無かったとき
 			//こちらの処理
 			//ここにゲーム処理を書き込んでいく
+			pDi->Update();
+
+			if (pDi->KeyJustPressed(DIK_A))
+			{
+				MessageBox(NULL,
+					TEXT("キー入力確認"),
+					TEXT("テストータイトル"),
+					MB_OK);
+			}
+
+
+
 			sprite.SetAngle(sprite.GetAngle_Rad() + 0.1f);
 
 			static int dir = 1;
