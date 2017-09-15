@@ -63,6 +63,7 @@ class Sprite;
 
 //上のSpriteクラスと同様の理由
 class Texture;
+class MeshX;
 
 //シングルトンなクラスにする
 //インスタンスがひとつしか作られないことを保証するクラス
@@ -118,6 +119,8 @@ private:
 
 	//Direct3Dデバイスの作成を行うためのオブジェクト
 	IDirect3D9*  pD3D9;
+
+	HWND hWnd;
 	
 	//以下　メンバ関数の宣言
 private :
@@ -142,6 +145,11 @@ public :
 	//バックバッファをフロント画面に反映
 	HRESULT Present();
 
+	//ビュー行列の設定　簡単に言えば　カメラの位置と回転
+	void SetViewMatric(D3DXMATRIXA16& matView);
+	//プロジェクション行列の設定 視野角　アスペクト比　描画距離
+	void SetProjectionMatrix();
+
 	//テクスチャのロード
 	//戻り値は成功したか失敗したか
 	//ロードが成功したら　texのメンバのpTextureにアドレスが割り当てられる
@@ -149,4 +157,9 @@ public :
 
 	//スプライトの描画
 	void DrawSprite(Sprite& sprite,Texture& tex);
+
+	//.x形式のメッシュ読み込み
+	bool LoadMeshX(MeshX& mesh, TCHAR*path);
+	//.x形式のメッシュ描画
+	void DrawMeshX(MeshX& mesh, D3DXMATRIXA16& matWorld);
 };

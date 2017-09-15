@@ -7,9 +7,12 @@
 #define DIRECT_INPUT_VIRSION 0x0800
 
 //マウスボタンに名前をつける
-#define MOUSE_BOTTON_LEFT 0
-#define MOUSE_BOTTON_RIGHT 1
-#define MOUSE_BOTTON_MIDDLE 2
+#define MOUSE_BUTTON_LEFT 0
+#define MOUSE_BUTTON_RIGHT 1
+#define MOUSE_BUTTON_MIDDLE 2
+
+//マウスボタンの
+#define MOUSE_BUTTON_MAX 8
 
 #pragma comment(lib,"d3d9.lib")
 #pragma comment(lib,"d3dx9.lib")
@@ -24,6 +27,8 @@
 #include<d3dx9.h>
 #include<mmsystem.h>
 #include<dinput.h>//directInput
+
+#include"Vector2D.h"
 
 #define INPUT_BUFFER_SIZE 256 //キーの数
 
@@ -61,6 +66,22 @@ private:
 	//1フレーム前のキーインプットの状態
 	//入力の変化を見たい　特にキーを離した瞬間が判断できる
 	int KeyInputPreview[INPUT_BUFFER_SIZE];
+
+	//現在のマウス座標
+	Vector2<int> mousePos;
+	//1フレーム前のマウス座標
+	Vector2<int> mousePosPreview;
+	//1フレーム前と現在のマウス座標の差分
+	//つまりこのフレームで移動した量
+	Vector2<int> mousePosDelta;
+
+
+	//マウスボタンの状態 全部のマウスボタンの情報
+	DIMOUSESTATE2 mouseInput;
+	//1フレーム前のマウスボタン
+	DIMOUSESTATE2 mouseInputPreview;
+	//マウスのボタンが何フレーム押され続けているか
+	int mouseButtonCounter[MOUSE_BUTTON_MAX];
 
 	
 	//ウィンドウのハンドル
@@ -101,4 +122,17 @@ public:
 	bool KeyJustPressed(int code);//いま押された瞬間か
 	bool KeyJustReleased(int code);//いま離された瞬間か
 	int KeyCount(int code);//押され続けているフレーム数
+
+	//マウスの状態を取得
+	bool MouseButton(int num);//押されているか　on offの状態
+	bool MouseButtonJustPressed(int num);//押された瞬間か
+	bool MouseButtonJustReleased(int num);//離された瞬間か
+	int MouseButtonCount(int num);//押され続けているフレーム数
+
+	//現在の座標
+	Vector2<int>MousePosition() { return mousePos; }
+	//前フレームからの移動量(差分)
+	Vector2<int>MousePositionDelta() { return mousePos; }	
+
+
 };

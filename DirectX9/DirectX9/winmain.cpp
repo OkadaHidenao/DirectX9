@@ -12,6 +12,10 @@
 
 #include"DirectInput.h"
 
+#include"DirectSound.h"
+#include"wave.h"
+#include"SoundBuffer.h"
+
 //ウィンドウプロシージャ
 LRESULT CALLBACK WndPrc
 (
@@ -291,6 +295,24 @@ int _stdcall WinMain
 	DirectInput*pDi = DirectInput::GetInstansce();
 	pDi->Init(hWnd);
 
+	//ダイレクトサウンドのデバイス作成
+	DirectSound* pDs = DirectSound::GetInstance();
+	pDs->Create(hWnd);
+
+	WaveFile waveFile;			 //音声ファイルデータ
+	SoundBuffer soundBuffer;	 //再生用バッファ
+	if (waveFile.Load("BGM.wav"))
+	{
+		soundBuffer.Create(waveFile);
+		soundBuffer.Play(true);
+	}
+	else
+	{
+		int a = 0;
+	}
+
+
+
 	//メインループ
 	//メッセージループ
 
@@ -333,6 +355,11 @@ int _stdcall WinMain
 					MB_OK);
 			}
 
+			if (pDi->MouseButtonJustPressed(MOUSE_BUTTON_LEFT))
+			{
+				Vector2<int> vec = pDi->MousePosition();
+				int breakpoint = 0;
+			}
 
 
 			sprite.SetAngle(sprite.GetAngle_Rad() + 0.1f);

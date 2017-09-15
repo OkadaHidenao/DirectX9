@@ -2,6 +2,7 @@
 
 #include"Sprite.h"
 #include"Texture.h"
+#include"MeshX.h"
 
 //スタティックなメンバ変数の初期化
 Direct3D* Direct3D::pInstance = nullptr;
@@ -159,8 +160,10 @@ bool Direct3D::Create(HWND hWnd)
 			}
 		}
 	}
-
 	//ここに来たということはどれかの設定でデバイスの作成が成功した
+	//ウィンドウのハンドルを覚えておく
+	this->hWnd = hWnd;
+	
 	return true;
 
 }
@@ -361,4 +364,127 @@ bool Direct3D::LoadTexture(Texture& tex, TCHAR* FilePath)
 	//デバイスが存在しなかった
 	//存在したが作成に失敗した
 	return false;//失敗
+}
+
+//.x形式のメッシュ読み込み
+bool Direct3D::LoadMeshX(MeshX& mesh, TCHAR*path)
+{
+	//Xファイルのパスの取得
+	//テクスチャの読み込み時に使用
+	CHAR  dir[_MAX_DIR];
+	_splitpath_s(path, NULL, 0, dir, _MAX_DIR, NULL, 0, NULL, 0);
+
+	//メッシュを読み込んだ後マテリアルを一時的に保存しておく変数
+	LPD3DXBUFFER pBufferMatrial;
+
+	//読み込み
+	if (D3DXLoadMeshFromX(path, D3DXMESH_SYSTEMMEM, pDevice3D, NULL, &pBufferMatrial, NULL, &mesh, numMatrials, &mesh.pMesh)!=D3D_OK)
+	{
+		return false;
+	}
+
+	//マテリアルの準備
+	if (mesh.numMaterials > 0)
+	{
+		//テクスチャとマテリアルをそれぞれマテリアルの個数分確保
+		//複数のマテリアルで一つのテクスチャを共有する場合を考えたら無駄が出てしまう
+		mesh.pMaterials = new D3DMATERIAL9[mesh.numMaterials];
+		mesh.ppTexture = new LPDIRECT3DTEXTURE9[mesh.numMaterials];
+
+		//バッファをマテリアルの形式にキャスト
+		D3DXMATERIAL* d3dxmaterials = (D3DXMATERIAL*)pBufferMatrial->GetBufferPointer();
+
+		//マテリアルをひとつずつバッファからコピー
+		for (unsigned int i = 0; i < mesh.numMaterials; i++)
+		{
+			mesh.pMaterials[i] = d3dxmaterials[i].MatD3D;
+
+			//環境光に対する反射係数(色)を拡散光反射のものと一緒にする
+			mesh.pMaterials[i].Ambient = mesh.pMaterials[i].Diffuse;
+
+			mesh.ppTexture[i] = nullptr;
+
+			//テクスチャのファイル名を取り出してロード
+			if (d3dxmaterials[i].pTextureFilename != nullptr)
+			{
+				//テクスチャのファイルパスの作成
+				CHAR textureFilepath[1024];
+				ZeroMemory(textureFilepath, sizeof(textureFilepath));
+
+				//ファイルパスにメッシュファイルまでのバスを書き込む
+				lstrcat(textureFilepath, dir);
+
+				//ファイルパスの末尾にテクスチャのファイル名を追加
+				lstrcat(textureFilepath, d3dxmaterials[i].pTextureFilename);
+
+				//作ったパスを用いてテクスチャファイルのロード
+				if (D3DXCreateTextureFromFile(pDevice3D, textureFilepath, &mesh.ppTexture[i]) != D3D_OK)
+				{
+					mesh.ppTexture[i] = nullptr;
+				}
+			}
+		}
+	}
+	//バッファの解放
+	pBufferMatrial->Release();
+
+	return true;
+}
+//.x形式のメッシュ描画
+void Direct3D::DrawMeshX(MeshX& mesh, D3DXMATRIXA16& matWorld)
+{
+	if (mesh.pMesh != nullptr)
+	{
+		//メッシュがロード済みである
+		//SetTransform関数を介してDirect3Dのデバイスにワールド変換行列を渡す
+		//第一引数が行列の種類
+		//D3DTS_WORLDの場合はメッシュの変換行列(座標　回転　拡縮)
+		pDevice3D->SetTransform(D3DTS_WORLD, &matWorld);
+
+		//頂点シェーダ(設定しない　デフォルトを使用)
+		//ポリゴンの各頂点がスクリーンのどの位置にくるかを計算するもの
+		pDevice3D->SetVertexShader(NULL);
+
+		//頂点フォーマット
+		//ポリゴンの一つの頂点の情報を格納した構造体がどのような構成になっているかをデバイスに渡す
+		pDevice3D->SetFVF(mesh.pMesh->GetFVF());
+
+		//マテリアルごとにメッシュを描画
+		for (unsigned int i = 0; i < mesh.numMaterials; i++)
+		{
+			//マテリアルとそれに対応するテクスチャをデバイスに渡す
+			pDevice3D->SetMaterial(&mesh.pMaterials[i]);//マテリアル
+			//テクスチャステージは０
+			pDevice3D->SetTexture(0, mesh.ppTexture[i]);//テクスチャ
+
+			//i番のマテリアルが適用されているポリゴングループ(サブセット)を描画
+			mesh.pMesh->DrawSubset(i);
+		}
+	}
+}
+
+void Direct3D::SetViewMatric(D3DXMATRIXA16& matView)
+{
+	//ビュー行列をデバイスに渡す
+	pDevice3D->SetTransform(D3DTS_VIEW, &mapView);
+}
+
+void Direct3D::SetProjectionMatrix()
+{
+	//クライアント領域の幅と高さからアスペクト比を求める
+	RECT clint;
+
+	GetClientRect(hWnd, &clint);
+	float w = clint.right - clint.left;
+	float h = clint.bottom - clint.top;
+
+	D3DXMATRIXA16 matProj;
+	//プロジェクション行列を作成する
+	D3DXMatrixPerspectiveFovLH(&matProj, 
+		(float)(D3DX_PI / 4.0),//視野角　９０度
+		w / h,//アスペクト比
+		1.0f,//描画距離　近
+		100.0f);//描画距離　遠
+
+	pDevice3D->SetTransform(D3DTS_PROJECTION, &matProj);
 }
