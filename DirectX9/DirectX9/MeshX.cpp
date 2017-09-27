@@ -40,7 +40,7 @@ bool MeshX::Load(TCHAR* path)
 {
 	Direct3D& pD3d = Direct3D::GetInstance();
 	
-	return pD3d LoadMeshX(*this.path);
+	return pD3d.LoadMeshX(*this,path);
 }
 
 bool MeshX::Load(std::string path)

@@ -7,14 +7,16 @@
 
 #include"Direct3D.h"
 
-#include"Sprite.h"
-#include"Texture.h"
+#include "Sprite.h"
+#include "Texture.h"
 
-#include"DirectInput.h"
+#include "DirectInput.h"
 
-#include"DirectSound.h"
-#include"wave.h"
-#include"SoundBuffer.h"
+#include "DirectSound.h"
+#include "Wave.h"
+#include "SoundBuffer.h"
+
+#include "MeshX.h"
 
 //ウィンドウプロシージャ
 LRESULT CALLBACK WndPrc
@@ -280,7 +282,39 @@ int _stdcall WinMain
 
 	//レンダーステートの設定  αブレンド
 	d3d.SetRenderState(RENDERSTATE::RENDER_ALPHABLEND);
+	d3d.SetProjectionMatrix();
 
+	{
+		//ワールド座標系の座標をカメラ中心の座標系に変換する行列
+		//カメラの位置と原点が重なるような座標系
+		//座標系の各軸の方向はカメラの向きによって変わる
+		D3DXMATRIXA16 mat;
+		D3DXVECTOR3 eye(0.0f, 0.0f, -10.0f);	//視点ワールド座標
+		D3DXVECTOR3 lookat(0.0f, 0.0f, 0.0f);	//注視点　eyeの位置から注視点を見るような回転を作る
+		D3DXVECTOR3 up(0.0f, 1.0f, 0.0f);		//ワールド座標上方向
+
+		//例として
+		//カメラが(0,0,300)の位置から
+		//(0,0,200)の位置にある3Dオブジェクトを見てる
+		// これをカメラの位置を(0,0,0)とみて
+		//3Dオブジェクトの位置を(0,0,-100)としてみる 
+		//(ただしカメラの回転によって(100,0,0)などそれぞれの軸の値はあらゆる値をとり得る)
+
+		//ビュー行列を作る　LH LeftHandの略 　(RH　はRightHand)
+		D3DXMatrixLookAtLH(&mat, &eye, &lookat, &up);
+		//3Dの座標系には右手座標系と左手座標系がありその左手座標系を使う
+		//両手をフレミングの左手の法則の様に広げて
+		//親指　人差し指　中指がそれぞれの軸のプラス方向としてみると
+		//右手と左手で親指の向きが違う(右手系と左手系のわかりやすい違い)
+
+		//ビュー行列設定
+		d3d.SetViewMatrix(mat);
+
+
+	}
+
+	//スプライトのインスタンスを作成
+	//パラメータは適当で
 	Sprite sprite;
 	sprite.SetAlpha(0.1);
 	sprite.SetSize(100, 100);
@@ -289,28 +323,31 @@ int _stdcall WinMain
 
 	//テクスチャのインスタンスを作成
 	Texture texture;
-	texture.Load(_T("test.png"));//画像のロード
+	texture.Load(_T("test.png"));//ファイルのロード
 	texture.SetDivide(2, 1);
 
-	DirectInput*pDi = DirectInput::GetInstansce();
+	DirectInput * pDi = DirectInput::GetInstance();
 	pDi->Init(hWnd);
 
 	//ダイレクトサウンドのデバイス作成
 	DirectSound* pDs = DirectSound::GetInstance();
 	pDs->Create(hWnd);
 
-	WaveFile waveFile;			 //音声ファイルデータ
-	SoundBuffer soundBuffer;	 //再生用バッファ
+	WaveFile waveFile;			//音声ファイルデータ
+	SoundBuffer soundBuffer;	//再生用バッファ
 	if (waveFile.Load("BGM.wav"))
 	{
 		soundBuffer.Create(waveFile);
-		soundBuffer.Play(true);
+		//soundBuffer.Play(true);		
 	}
 	else
 	{
 		int a = 0;
 	}
 
+	//メッシュインスタンスの作成
+	MeshX meshX;
+	meshX.Load("Mesh/iasel/iasel_brackboard.x");
 
 
 	//メインループ
@@ -345,42 +382,44 @@ int _stdcall WinMain
 			//メッセージキューにメッセージが無かったとき
 			//こちらの処理
 			//ここにゲーム処理を書き込んでいく
-			pDi->Update();
+			
+			pDi->Update();//キー状態の更新
 
 			if (pDi->KeyJustPressed(DIK_A))
 			{
 				MessageBox(NULL,
 					TEXT("キー入力確認"),
-					TEXT("テストータイトル"),
+					TEXT("テスト-タイトル"),
 					MB_OK);
 			}
 
 			if (pDi->MouseButtonJustPressed(MOUSE_BUTTON_LEFT))
 			{
-				Vector2<int> vec = pDi->MousePosition();
-				int breakpoint = 0;
+				Vector2<int>  vec = pDi->MousePosition();
+				int breakpoint=0;
 			}
 
 
-			sprite.SetAngle(sprite.GetAngle_Rad() + 0.1f);
+			sprite.SetAngle(sprite.GetAngle_Rad()+0.01f);//回転
 
-			static int dir = 1;
+			static int dir = 1;//α
 			sprite.SetAlpha(sprite.GetAlpha() + (dir*0.01));
 			switch (dir)
 			{
-			case 1:
-				if (sprite.GetAlpha() >= 1)
-				{
-					dir = -1;
-				}
-				break;
-			case -1:
-				if (sprite.GetAlpha() <= 0)
-				{
-					dir = 1;
-				}
-				break;
+				case 1:
+					if (sprite.GetAlpha() >= 1)
+					{
+						dir = -1;
+					}
+					break;
+				case -1:
+					if (sprite.GetAlpha() <= 0)
+					{
+						dir = 1;
+					}
+					break;
 			}
+			
 
 			//描画処理
 			if (SUCCEEDED(d3d.BeginScene()))
@@ -388,8 +427,25 @@ int _stdcall WinMain
 				//バックバッファのクリア
 				d3d.ClearScreen();
 
+				static bool f = false;
+				static D3DXMATRIXA16 matIdentify;//単位行列
+				if (f == false)//最初の一回目だけ初期化
+				{
+					f = true;
+					D3DXMatrixIdentity(&matIdentify);//初期化 単位行列
+					//座標(0,0,0)　無回転　拡大率100%
+				}
+
+				//スプライト描画の為のレンダーステート
+				d3d.SetRenderState(RENDERSTATE::RENDER_ALPHABLEND);
 				//スプライトの描画
 				sprite.Draw(texture);
+
+				//メッシュの描画
+				//メッシュ描画の為のレンダーステート
+				d3d.SetRenderState(RENDERSTATE::RENDER_MESH_X);
+				//描画　位置回転拡大　全て単位行列
+				meshX.Draw(matIdentify, matIdentify, matIdentify);
 
 				//描画終了の合図
 				d3d.EndScene();

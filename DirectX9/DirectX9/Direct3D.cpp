@@ -378,7 +378,7 @@ bool Direct3D::LoadMeshX(MeshX& mesh, TCHAR*path)
 	LPD3DXBUFFER pBufferMatrial;
 
 	//読み込み
-	if (D3DXLoadMeshFromX(path, D3DXMESH_SYSTEMMEM, pDevice3D, NULL, &pBufferMatrial, NULL, &mesh, numMatrials, &mesh.pMesh)!=D3D_OK)
+	if (D3DXLoadMeshFromX(path, D3DXMESH_SYSTEMMEM, pDevice3D, NULL, &pBufferMatrial, NULL, &mesh.numMaterials, &mesh.pMesh)!=D3D_OK)
 	{
 		return false;
 	}
@@ -466,7 +466,7 @@ void Direct3D::DrawMeshX(MeshX& mesh, D3DXMATRIXA16& matWorld)
 void Direct3D::SetViewMatric(D3DXMATRIXA16& matView)
 {
 	//ビュー行列をデバイスに渡す
-	pDevice3D->SetTransform(D3DTS_VIEW, &mapView);
+	pDevice3D->SetTransform(D3DTS_VIEW, &matView);
 }
 
 void Direct3D::SetProjectionMatrix()
