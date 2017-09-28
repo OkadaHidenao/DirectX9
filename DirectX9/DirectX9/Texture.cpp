@@ -65,6 +65,6 @@ void Texture::SetDivide(unsigned int DivU,
 void Texture::SetNum(unsigned int NumU,
 	unsigned int NumV)
 {
-	numU = (numU > divU) ? divU-1 : numU;
-	numV = (numV > divV) ? divV-1 : numV;
+	numU = (numU > divU) ? divU-1 : NumU;
+	numV = (numV > divV) ? divV-1 : NumV;
 }
