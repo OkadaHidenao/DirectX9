@@ -52,7 +52,8 @@ enum RENDERSTATE
 {
 	RENDER_DEFAULT,		//デフォルト
 	RENDER_ALPHATEST,	//αテスト
-	RENDER_ALPHABLEND	//αブレンド
+	RENDER_ALPHABLEND,	//αブレンド
+	RENDER_MESH_X		//メッシュ
 };
 
 //使用するクラス名を宣言

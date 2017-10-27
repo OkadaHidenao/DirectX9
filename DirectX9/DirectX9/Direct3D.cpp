@@ -7,8 +7,6 @@
 //スタティックなメンバ変数の初期化
 Direct3D* Direct3D::pInstance = nullptr;
 
-
-
 //コンストラクタ
 Direct3D::Direct3D()
 {
@@ -172,43 +170,99 @@ bool Direct3D::Create(HWND hWnd)
 void Direct3D::SetRenderState(RENDERSTATE state)
 {
 	//デバイスが作成されていないなら中断
-	if (pDevice3D == nullptr)return ;
+	if (pDevice3D == nullptr)return;
 
 	switch (state)
 	{
-		case RENDER_DEFAULT:
-			pDevice3D->SetRenderState(D3DRS_ALPHATESTENABLE, false);//αテスト無効
-			pDevice3D->SetRenderState(D3DRS_ALPHABLENDENABLE, false);//αブレンド無効
+	case RENDER_DEFAULT:
+		pDevice3D->SetRenderState(D3DRS_ALPHATESTENABLE, false);//αテスト無効
+		pDevice3D->SetRenderState(D3DRS_ALPHABLENDENABLE, false);//αブレンド無効
 
-			break;
-		case RENDER_ALPHATEST:
-			//透明部分の切り抜き
-			//α値でそのピクセルを描画するかを判断する
-			//判断基準のα値はあらかじめ決めておく
-			pDevice3D->SetRenderState(D3DRS_ALPHATESTENABLE, true);//αテスト有効
-			pDevice3D->SetRenderState(D3DRS_ALPHABLENDENABLE, false);//αブレンド無効
-			pDevice3D->SetRenderState(D3DRS_ALPHAREF, 0x80);//判断基準値
-			pDevice3D->SetRenderState(D3DRS_ALPHAFUNC, D3DCMP_GREATEREQUAL);//基準値以上で描画
+		break;
+	case RENDER_ALPHATEST:
+		//透明部分の切り抜き
+		//α値でそのピクセルを描画するかを判断する
+		//判断基準のα値はあらかじめ決めておく
+		pDevice3D->SetRenderState(D3DRS_ALPHATESTENABLE, true);//αテスト有効
+		pDevice3D->SetRenderState(D3DRS_ALPHABLENDENABLE, false);//αブレンド無効
+		pDevice3D->SetRenderState(D3DRS_ALPHAREF, 0x80);//判断基準値
+		pDevice3D->SetRenderState(D3DRS_ALPHAFUNC, D3DCMP_GREATEREQUAL);//基準値以上で描画
 
-			break;
-		case RENDER_ALPHABLEND:
-			//半透明描画
+		break;
+	case RENDER_ALPHABLEND:
+		//半透明描画
 
-			pDevice3D->SetRenderState(D3DRS_ALPHATESTENABLE, false);//αテスト無効
-			pDevice3D->SetRenderState(D3DRS_ALPHABLENDENABLE, true);//αブレンド有効
+		pDevice3D->SetRenderState(D3DRS_ALPHATESTENABLE, false);//αテスト無効
+		pDevice3D->SetRenderState(D3DRS_ALPHABLENDENABLE, true);//αブレンド有効
 
-			//ブレンド係数　今から描画するピクセル色に対するもの
-			pDevice3D->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);		
-			//ブレンド係数	既にバックバッファに書かれているピクセル色に対するもの
-			pDevice3D->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);	
-			
-			//最終的な描画色　＝　
-			//	SRC色×ブレンディング係数（SRC)　＋　DEST色×ブレンディング係数（DEST）
+		//ブレンド係数　今から描画するピクセル色に対するもの
+		pDevice3D->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
+		//ブレンド係数	既にバックバッファに書かれているピクセル色に対するもの
+		pDevice3D->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
 
-			break;	
+		//最終的な描画色　＝　
+		//	SRC色×ブレンディング係数（SRC)　＋　DEST色×ブレンディング係数（DEST）
+
+		break;
+	case RENDER_MESH_X:
+		//メッシュX描画の設定
+			{
+				SetProjectionMatrix();
+
+				//カリングモード
+				//渡された頂点配列の順番でポリゴンそれぞれを描画する際
+				//時計周りに並んでいる面を表とするのか			CCWを設定
+				//反時計回りに並んでいる面を表とするのかの設定　CWを設定
+				//また、裏面の描画はしない　両面描画するのはD3DCULL_NONE
+				//CW 時計回り
+				//CCW 反時計回り
+				//カリング自体の意味は裏面の描画を省く機能なので消すほうを設定
+				pDevice3D->SetRenderState(D3DRS_CULLMODE, D3DCULL_CCW);
+
+				//ライトを有効にするか
+				pDevice3D->SetRenderState(D3DRS_LIGHTING, TRUE);
+				//奥行きを有効にするか
+				//カメラから遠いオブジェクトを描画するとき
+				//手前にあるオブジェクトによって一部ないし全体が隠れている場合に
+				//その部分の描画を省くという設定
+				pDevice3D->SetRenderState(D3DRS_ZENABLE, TRUE);
+
+				//(別に専用の関数を設けるのが無難ではあるが)
+				//ライトの設定
+				D3DLIGHT9 light;
+				ZeroMemory(&light, sizeof(D3DLIGHT9));
+				light.Type = D3DLIGHT_DIRECTIONAL;//ライトの種類
+				light.Diffuse.r = 1.0f;//ライトの色　赤　成分
+				light.Diffuse.g = 1.0f;//			 緑
+				light.Diffuse.b = 1.0f;//			 青
+				light.Direction = D3DXVECTOR3(-0.5f, -1.0f, 0.5f);//ライトの方向
+				light.Range = 1000.0f;//ライトの距離　Directionはあまり関係なかったはず
+
+				pDevice3D->SetLight(0, &light);//ライトの設定　0　はライトの管理番号だと思っておけばOK
+
+											   //向きの違うライトをもう一つ用意しておく
+				ZeroMemory(&light, sizeof(D3DLIGHT9));
+				light.Type = D3DLIGHT_DIRECTIONAL;
+				light.Diffuse.r = 1.0f;
+				light.Diffuse.g = 1.0f;
+				light.Diffuse.b = 1.0f;
+				light.Direction = D3DXVECTOR3(0.5f, -1.0f, 0.5f);
+				light.Range = 1000.0f;
+				pDevice3D->SetLight(1, &light);//ライトの設定　管理番号　1
+
+				pDevice3D->LightEnable(0, TRUE);//0番のライトを有効にする
+				pDevice3D->LightEnable(1, TRUE);//1番のライトを有効にする
+
+												//アンビエント
+												//環境光　
+												//（説明が正確でないので注意）
+												//ベタ塗用の光
+												//上で設定した光の影響が全くない状態でも描画するための最低限の光
+				pDevice3D->SetRenderState(D3DRS_AMBIENT, 0x00444444);
+			}
+
+	break;
 	}
-
-
 }
 
 HRESULT Direct3D::BeginScene()

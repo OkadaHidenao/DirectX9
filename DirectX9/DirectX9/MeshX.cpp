@@ -79,5 +79,5 @@ void MeshX::Draw(D3DXMATRIXA16& matTransform, D3DXMATRIXA16& matRotation, D3DXMA
 	Direct3D& d3d = Direct3D::GetInstance();
 
 	//•`‰æ
-	//d3d.DrawMeshX(*this, matWorld);
+	d3d.DrawMeshX(*this, matWorld);
 }

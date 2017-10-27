@@ -16,6 +16,7 @@
 #include "Wave.h"
 #include "SoundBuffer.h"
 
+#include "Camera.h"
 #include "MeshX.h"
 
 //ウィンドウプロシージャ
@@ -54,19 +55,19 @@ LRESULT CALLBACK WndPrc
 
 	switch (msg)
 	{
-		case WM_DESTROY:
+	case WM_DESTROY:
 
-			PostQuitMessage(0);
+		PostQuitMessage(0);
 
-			//メッセージキューに
-			//新しくWM_QUITメッセージを送る
+		//メッセージキューに
+		//新しくWM_QUITメッセージを送る
 
-			//いずれメッセージキューから
-			//取り出され
-			//メインループが終了する
-			//(メインループの終了条件を
-			//そのように作る)
-			break;
+		//いずれメッセージキューから
+		//取り出され
+		//メインループが終了する
+		//(メインループの終了条件を
+		//そのように作る)
+		break;
 	}
 
 	//独自の処理を行ったら
@@ -84,7 +85,7 @@ HRESULT RegistClassEx(HINSTANCE hInstance)
 {
 	//ウィンドウの設定を保存する構造体
 	WNDCLASSEX wcex;
-	
+
 	//wcexの先頭アドレスから
 	//WNDCLASSEXの長さ分のメモリを
 	//全て0で埋める
@@ -132,13 +133,13 @@ HRESULT RegistClassEx(HINSTANCE hInstance)
 	wcex.hIcon = (HICON)LoadImage(NULL,
 		MAKEINTRESOURCE(IDI_APPLICATION),
 		IMAGE_ICON,
-		0, 
-		0, 
+		0,
+		0,
 		LR_DEFAULTSIZE | LR_SHARED);
 	wcex.hIconSm = NULL;
 
 	//カーソル デフォルトのものを使う
-	wcex.hCursor= (HCURSOR)LoadImage(NULL,
+	wcex.hCursor = (HCURSOR)LoadImage(NULL,
 		MAKEINTRESOURCE(IDC_ARROW),
 		IMAGE_CURSOR,
 		0,
@@ -148,21 +149,21 @@ HRESULT RegistClassEx(HINSTANCE hInstance)
 	//設定したウィンドウクラスを登録
 	//登録したウィンドウ設定でないと
 	//ウィンドウを作ることができない
-	return RegisterClassEx(&wcex); 
+	return RegisterClassEx(&wcex);
 	//HRESULT型の実行結果が戻される
 }
 
 
 //登録した設定を基にウィンドウを作成する
 HRESULT MakeWindow
-	(HINSTANCE hInstance,//WinMainの識別子
-	 HWND &refHWnd,	//ウィンドウの識別子
+(HINSTANCE hInstance,//WinMainの識別子
+	HWND &refHWnd,	//ウィンドウの識別子
 					//正しくウィンドウの作成ができたら
 					//この変数に識別子を代入する
 	int width = 800,	//クライアント領域の幅
 	int height = 600)	//クライアント領域の高さ
-	//クライアント領域はウィンドウ全体から
-	//外枠やメニューの部分を除いた物と今は思っておけばOK
+						//クライアント領域はウィンドウ全体から
+						//外枠やメニューの部分を除いた物と今は思っておけばOK
 {
 	//クライアント領域のおおきさを決める
 	RECT rect;
@@ -183,7 +184,7 @@ HRESULT MakeWindow
 	HWND hWnd;
 
 	hWnd = CreateWindowEx
-	(	0,						//ウィンドウ拡張スタイル
+	(0,						//ウィンドウ拡張スタイル
 		WC_BASIC,				//作りたいウィンドウクラス
 								//あらかじめ登録されたもの
 		_T("タイトル"),			//ウィンドウのタイトル
@@ -203,8 +204,8 @@ HRESULT MakeWindow
 								//を付けるのが無難な使い方か
 								//今回は使わない
 
-	//ウィンドウが正しく作れたかをチェック
-	//正しく作れたらhWndにNULL以外が入るはず
+								//ウィンドウが正しく作れたかをチェック
+								//正しく作れたらhWndにNULL以外が入るはず
 	if (hWnd == NULL)
 	{
 		return S_FALSE;//HRESULT型　失敗を表す識別子の一つ
@@ -233,25 +234,25 @@ HRESULT MakeWindow
 //プログラムの開始関数
 
 int _stdcall WinMain
-   (HINSTANCE hInstance,	//プログラムを識別するハンドル
+(HINSTANCE hInstance,	//プログラムを識別するハンドル
 	HINSTANCE hPrevInstance,//アプリケーションの前のインスタンスハンドル
 							//win32だと常にNULL
 	LPSTR lpCmdLine,		//コマンドライン引数
-	   int nCmdShow)		//ウィンドウの表示状態
+	int nCmdShow)		//ウィンドウの表示状態
 {
 	//メッセージボックス
 	MessageBox(NULL,		//ウィンドウのハンドル 
 		TEXT("テスト"),		//本文
-		TEXT( "テスト-タイトル"),//タイトル
+		TEXT("テスト-タイトル"),//タイトル
 		MB_OK);				//メッセージボックスのタイプ
 							//MB_OK  okのボタンが表示
 
 	if (FAILED(RegistClassEx(hInstance)))
 	{
-		MessageBox(NULL,	
-			TEXT("ウィンドウクラス設定失敗"),		
+		MessageBox(NULL,
+			TEXT("ウィンドウクラス設定失敗"),
 			TEXT("テスト-タイトル"),
-			MB_OK);				
+			MB_OK);
 		return 0;
 	}
 
@@ -259,7 +260,7 @@ int _stdcall WinMain
 
 	//正しくウィンドウが作成されれば
 	//hWndにウィンドウの識別ハンドルが入る
-	if (FAILED(MakeWindow(hInstance,hWnd)))
+	if (FAILED(MakeWindow(hInstance, hWnd)))
 	{
 		MessageBox(NULL,
 			TEXT("ウィンドウ作成失敗"),
@@ -267,7 +268,7 @@ int _stdcall WinMain
 			MB_OK);
 		return 0;
 	}
-	
+
 	//Direct3Dを管理するクラス(シングルトン)への参照を取得
 	Direct3D& d3d = Direct3D::GetInstance();
 
@@ -293,14 +294,14 @@ int _stdcall WinMain
 		D3DXVECTOR3 lookat(0.0f, 0.0f, 0.0f);	//注視点　eyeの位置から注視点を見るような回転を作る
 		D3DXVECTOR3 up(0.0f, 1.0f, 0.0f);		//ワールド座標上方向
 
-		//例として
-		//カメラが(0,0,300)の位置から
-		//(0,0,200)の位置にある3Dオブジェクトを見てる
-		// これをカメラの位置を(0,0,0)とみて
-		//3Dオブジェクトの位置を(0,0,-100)としてみる 
-		//(ただしカメラの回転によって(100,0,0)などそれぞれの軸の値はあらゆる値をとり得る)
+												//例として
+												//カメラが(0,0,300)の位置から
+												//(0,0,200)の位置にある3Dオブジェクトを見てる
+												// これをカメラの位置を(0,0,0)とみて
+												//3Dオブジェクトの位置を(0,0,-100)としてみる 
+												//(ただしカメラの回転によって(100,0,0)などそれぞれの軸の値はあらゆる値をとり得る)
 
-		//ビュー行列を作る　LH LeftHandの略 　(RH　はRightHand)
+												//ビュー行列を作る　LH LeftHandの略 　(RH　はRightHand)
 		D3DXMatrixLookAtLH(&mat, &eye, &lookat, &up);
 		//3Dの座標系には右手座標系と左手座標系がありその左手座標系を使う
 		//両手をフレミングの左手の法則の様に広げて
@@ -308,10 +309,12 @@ int _stdcall WinMain
 		//右手と左手で親指の向きが違う(右手系と左手系のわかりやすい違い)
 
 		//ビュー行列設定
-		d3d.SetViewMatrix(mat);
-
-
+		d3d.SetViewMatric(mat);
 	}
+
+	Camera camera;
+	//カメラの位置を調整
+	camera.Move(0, 0, -10);
 
 	//スプライトのインスタンスを作成
 	//パラメータは適当で
@@ -326,7 +329,7 @@ int _stdcall WinMain
 	texture.Load(_T("test.png"));//ファイルのロード
 	texture.SetDivide(2, 1);
 
-	DirectInput * pDi = DirectInput::GetInstance();
+	DirectInput * pDi = DirectInput::GetInstansce();
 	pDi->Init(hWnd);
 
 	//ダイレクトサウンドのデバイス作成
@@ -382,44 +385,86 @@ int _stdcall WinMain
 			//メッセージキューにメッセージが無かったとき
 			//こちらの処理
 			//ここにゲーム処理を書き込んでいく
-			
-			pDi->Update();//キー状態の更新
 
-			if (pDi->KeyJustPressed(DIK_A))
-			{
-				MessageBox(NULL,
-					TEXT("キー入力確認"),
-					TEXT("テスト-タイトル"),
-					MB_OK);
-			}
+			pDi->Update();//キー状態の更新
 
 			if (pDi->MouseButtonJustPressed(MOUSE_BUTTON_LEFT))
 			{
 				Vector2<int>  vec = pDi->MousePosition();
-				int breakpoint=0;
+				int breakpoint = 0;
 			}
 
 
-			sprite.SetAngle(sprite.GetAngle_Rad()+0.01f);//回転
+			sprite.SetAngle(sprite.GetAngle_Rad() + 0.01f);//回転
 
 			static int dir = 1;//α
 			sprite.SetAlpha(sprite.GetAlpha() + (dir*0.01));
 			switch (dir)
 			{
-				case 1:
-					if (sprite.GetAlpha() >= 1)
-					{
-						dir = -1;
-					}
-					break;
-				case -1:
-					if (sprite.GetAlpha() <= 0)
-					{
-						dir = 1;
-					}
-					break;
+			case 1:
+				if (sprite.GetAlpha() >= 1)
+				{
+					dir = -1;
+				}
+				break;
+			case -1:
+				if (sprite.GetAlpha() <= 0)
+				{
+					dir = 1;
+				}
+				break;
 			}
-			
+
+			//カメラの操作
+			{
+				//回転
+				float pitch = 0;
+				float yaw = 0;
+
+				if (pDi->KeyState(DIK_RIGHT))
+				{
+					yaw -= 1;
+				}
+				if (pDi->KeyState(DIK_LEFT))
+				{
+					yaw += 1;
+				}
+				if (pDi->KeyState(DIK_UP))
+				{
+					pitch += 1;
+				}
+				if (pDi->KeyState(DIK_DOWN))
+				{
+					pitch -= 1;
+				}
+
+				camera.Rotate(yaw*0.01f, pitch*0.01f);
+
+				//移動
+				float x = 0;
+				float y = 0;
+				float z = 0;
+
+				if (pDi->KeyState(DIK_D))x += 1;
+				if (pDi->KeyState(DIK_A))x -= 1;
+				if (pDi->KeyState(DIK_W))z += 1;
+				if (pDi->KeyState(DIK_S))z -= 1;
+				if (pDi->KeyState(DIK_R))y += 1;
+				if (pDi->KeyState(DIK_F))y -= 1;
+				camera.MoveBasedRotationFlatten(z*0.05, x*0.05, y*0.05);
+
+				//スペースキーでカメラリセット
+				if (pDi->KeyState(DIK_SPACE))
+				{
+					camera.SetPosition(0, 0, -10);
+					camera.SetRotation(3.1415f*0.5f, 0.0f);
+				}
+
+				//ビュー行列の更新
+				D3DXMATRIXA16 view = camera.CreateViewMatrix();
+				d3d.SetViewMatric(view);
+			}
+
 
 			//描画処理
 			if (SUCCEEDED(d3d.BeginScene()))
@@ -433,13 +478,13 @@ int _stdcall WinMain
 				{
 					f = true;
 					D3DXMatrixIdentity(&matIdentify);//初期化 単位行列
-					//座標(0,0,0)　無回転　拡大率100%
+													 //座標(0,0,0)　無回転　拡大率100%
 				}
 
 				//スプライト描画の為のレンダーステート
-				d3d.SetRenderState(RENDERSTATE::RENDER_ALPHABLEND);
+				//d3d.SetRenderState(RENDERSTATE::RENDER_ALPHABLEND);
 				//スプライトの描画
-				sprite.Draw(texture);
+				//sprite.Draw(texture);
 
 				//メッシュの描画
 				//メッシュ描画の為のレンダーステート
