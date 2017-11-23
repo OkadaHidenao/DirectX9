@@ -3,6 +3,7 @@
 #include"Sprite.h"
 #include"Texture.h"
 #include"MeshX.h"
+#include"OrientedBoundingBox.h"
 
 //スタティックなメンバ変数の初期化
 Direct3D* Direct3D::pInstance = nullptr;
@@ -541,4 +542,9 @@ void Direct3D::SetProjectionMatrix()
 		100.0f);//描画距離　遠
 
 	pDevice3D->SetTransform(D3DTS_PROJECTION, &matProj);
+}
+
+HRESULT Direct3D::CallDrawFunc(OrientedBoundingBox &obb)
+{
+	return obb.Draw(pDevice3D);
 }

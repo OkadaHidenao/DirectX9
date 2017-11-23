@@ -18,6 +18,7 @@
 
 #include "Camera.h"
 #include "MeshX.h"
+#include"OrientedBoundingBox.h"
 
 //ウィンドウプロシージャ
 LRESULT CALLBACK WndPrc
@@ -352,12 +353,31 @@ int _stdcall WinMain
 	MeshX meshX;
 	meshX.Load("Mesh/iasel/iasel_brackboard.x");
 
+	OrientedBoundingBox obb[2];
+	obb[1].SetPosition(D3DXVECTOR3(5, 0, 0));
+
+	float sita = 0.2f;
+	D3DXVECTOR3 dir[3]
+	{
+		D3DXVECTOR3(-sin(sita),0,cos(sita)),
+		D3DXVECTOR3(cos(sita),0,sin(sita)),
+		D3DXVECTOR3(0,1,0)
+	};
+
+	obb[1].SetDirection(dir[0],dir[1],dir[2]);
+	obb[1].SetLength(0.5, 1, 1);
+
+	D3DXVECTOR4 BaseDir[4]
+	{
+		D3DXVECTOR4(0,0,1,1),
+		D3DXVECTOR4(1,0,0,1),
+		D3DXVECTOR4(0,1,0,1)
+	};
 
 	//メインループ
 	//メッセージループ
-
 	MSG msg = {};
-
+	
 	//quitメッセージが出てくるまでループを繰り返す
 	//quitメッセージは上記のウィンドウプロシージャから送信
 	//送信の条件などはウィンドウプロシージャを確認
@@ -465,7 +485,40 @@ int _stdcall WinMain
 				d3d.SetViewMatric(view);
 			}
 
+			{
+				static bool flag = true;
+				if (flag)
+				{
+					static float f = 0;
+					f += 0.01f;
+					obb[1].SetPosition(D3DXVECTOR3(5 - f, 0, 0));
+					if (OrientedBoundingBox::Collision(obb[1], obb[0]))
+					{
+						flag = false;
+					}
 
+					//mat1 2は回転行列
+					D3DXMATRIXA16 mat1, mat2;
+					D3DXMatrixRotationX(&mat1, f*5);	//x軸中心
+					D3DXMatrixRotationZ(&mat2, f * 2);	//z軸中心
+					D3DXVECTOR4 v4[3];					//基本の向きのベクトルに行列１，２の回転を適用した状態を計算して代入　
+														//Vector4なのは行列の型が4*4なのでそれに合わせた
+					D3DXVECTOR3 v3[3];
+
+					for (int i = 0; i < 3; i++)
+					{
+						D3DXVec4Transform(&v4[i], &BaseDir[i], &mat1);	//行列１の回転で変換
+						D3DXVec4Transform(&v4[i], &v4[i], &mat2);		//さらに行列２の回転で変換
+
+						//vec4からvec3にデータを移す
+						v3[i] = D3DXVECTOR3(v4[i].x, v4[i].y, v4[i].z);
+					}
+
+					//変換した向きをobbの向きとして設定
+					obb[0].SetDirection(v3[0], v3[1], v3[2]);
+				}
+
+			}
 			//描画処理
 			if (SUCCEEDED(d3d.BeginScene()))
 			{
@@ -491,7 +544,10 @@ int _stdcall WinMain
 				d3d.SetRenderState(RENDERSTATE::RENDER_MESH_X);
 				//描画　位置回転拡大　全て単位行列
 				meshX.Draw(matIdentify, matIdentify, matIdentify);
-
+				for (int i = 0; i < 2; i++)
+				{
+					d3d.CallDrawFunc(obb[i]);
+				}
 				//描画終了の合図
 				d3d.EndScene();
 				//バックバッファをフロントへ反映

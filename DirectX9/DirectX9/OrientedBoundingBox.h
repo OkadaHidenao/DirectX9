@@ -6,6 +6,28 @@
 //OBB (略称)
 class OrientedBoundingBox
 {
+public:
+	//箱の描画の際にD3Dに渡す頂点情報
+	//FVFで書いたとおりのメンバ
+	//順番も決まっている(マイクロソフトのリファレンスサイトを参照)
+	struct Vertex
+	{
+		//三次元座標
+		D3DXVECTOR3 pos;
+
+		//法線
+		//面に垂直なベクトル
+		D3DXVECTOR3 normal;
+
+		//色
+		D3DCOLOR color;
+	};
+private:
+	//頂点構造体の構成要素を示す情報
+	static const DWORD FVF_TRIANGLE_LIST_VERTEX = D3DFVF_XYZ | D3DFVF_NORMAL | D3DFVF_DIFFUSE;
+	//diffuse 拡散光色　：色
+
+
 protected:
 	D3DXVECTOR3 position;//ボックスの中心座標
 
@@ -35,6 +57,9 @@ public:
 	//各辺の長さ
 	void SetLength(float forward, float right, float up);
 
+	//バウンディングボックスの範囲の立方体の描画
+	HRESULT Draw(IDirect3DDevice9* pDevice);
+
 private:
 	//分離軸に直方体を投影した時の長さを計算する
 	//pSeq 分離軸(標準化ベクトル)
@@ -54,4 +79,7 @@ private:
 public:
 	//二つのOBBが接触していればtrueを返す
 	static bool Collision(OrientedBoundingBox &obb1, OrientedBoundingBox &obb2);
+
+
+
 };

@@ -67,6 +67,9 @@ void OrientedBoundingBox::SetDirection(D3DXVECTOR3 newForward, D3DXVECTOR3 newRi
 	NormDirection[FORWARD] = newForward;
 	NormDirection[RIGHT]   = newRight;
 	NormDirection[UP]	   = newUp;
+
+	//各頂点の更新
+	UpdateVertexPos();
 }
 
 //各辺の長さを設定
@@ -111,13 +114,13 @@ void OrientedBoundingBox::UpdateVertexPos()
 	//背面
 	vertexPos[VERTEX_BRU]
 		= position +
-		(NormDirection[FORWARD] * length[FORWARD] * 0.5f) +
+		(-NormDirection[FORWARD] * length[FORWARD] * 0.5f) +
 		(NormDirection[RIGHT]   * length[RIGHT] * 0.5f) +
 		(NormDirection[UP]      * length[UP] * 0.5f);
 
 	vertexPos[VERTEX_BRD]
 		= position +
-		(NormDirection[FORWARD] * length[FORWARD] * 0.5f) +
+		(-NormDirection[FORWARD] * length[FORWARD] * 0.5f) +
 		(NormDirection[RIGHT]   * length[RIGHT] * 0.5f) +
 		(-NormDirection[UP]     * length[UP] * 0.5f);
 
@@ -135,7 +138,7 @@ void OrientedBoundingBox::UpdateVertexPos()
 }
 
 //分離軸に直方体を投影した長さを計算
-static float LengthSegmentOnSepatateAxis(D3DXVECTOR3 *pSep,D3DXVECTOR3 *e1, D3DXVECTOR3 *e2,D3DXVECTOR3 *e3 = NULL)
+float OrientedBoundingBox:: LengthSegmentOnSepatateAxis(D3DXVECTOR3 *pSep, D3DXVECTOR3 *e1, D3DXVECTOR3 *e2, D3DXVECTOR3 *e3)
 {
 	//pSep 分離軸　標準化ベクトル
 	//e1～e3　それぞれの辺のベクトル
@@ -289,3 +292,84 @@ bool OrientedBoundingBox::Collision(OrientedBoundingBox &obb_A, OrientedBounding
 }
 
 
+//バウンディングボックスの範囲の立方体の描画
+HRESULT OrientedBoundingBox::Draw(IDirect3DDevice9* pDevice)
+{
+	//ヌルぽで失敗
+	if(pDevice == nullptr)
+	{
+		return E_FAIL;
+	}
+
+	//立方体の頂点
+	//描画方法をトライアングルリストにするので頂点３つ一組で一つの三角形を描画
+	//3頂点*一つの面が2つの三角形*6面
+	//3*2*6=36
+	Vertex v[36]
+	{
+		//正面
+		{ vertexPos[VERTEX_FRU], NormDirection[FORWARD], D3DCOLOR_RGBA(255, 255, 255, 128)},
+		{ vertexPos[VERTEX_FLU], NormDirection[FORWARD], D3DCOLOR_RGBA(255, 255, 255, 128)},
+		{ vertexPos[VERTEX_FRD], NormDirection[FORWARD], D3DCOLOR_RGBA(255, 255, 255, 128)},
+
+		{ vertexPos[VERTEX_FLU], NormDirection[FORWARD], D3DCOLOR_RGBA(255, 255, 255, 128)},
+		{ vertexPos[VERTEX_FLD], NormDirection[FORWARD], D3DCOLOR_RGBA(255, 255, 255, 128)},
+		{ vertexPos[VERTEX_FRD], NormDirection[FORWARD], D3DCOLOR_RGBA(255, 255, 255, 128)},
+		//裏面
+		{ vertexPos[VERTEX_BRU], -NormDirection[FORWARD], D3DCOLOR_RGBA(255, 255, 255, 128)},
+		{ vertexPos[VERTEX_BRD], -NormDirection[FORWARD], D3DCOLOR_RGBA(255, 255, 255, 128)},
+		{ vertexPos[VERTEX_BLD], -NormDirection[FORWARD], D3DCOLOR_RGBA(255, 255, 255, 128)},
+
+		{ vertexPos[VERTEX_BRU], -NormDirection[FORWARD], D3DCOLOR_RGBA(255, 255, 255, 128)},
+		{ vertexPos[VERTEX_BLD], -NormDirection[FORWARD], D3DCOLOR_RGBA(255, 255, 255, 128)},
+		{ vertexPos[VERTEX_BLU], -NormDirection[FORWARD], D3DCOLOR_RGBA(255, 255, 255, 128)},
+
+		//右
+		{ vertexPos[VERTEX_BRU], NormDirection[RIGHT], D3DCOLOR_RGBA(255, 255, 255, 128)},
+		{ vertexPos[VERTEX_FRU], NormDirection[RIGHT], D3DCOLOR_RGBA(255, 255, 255, 128)},
+		{ vertexPos[VERTEX_FRD], NormDirection[RIGHT], D3DCOLOR_RGBA(255, 255, 255, 128)},
+
+		{ vertexPos[VERTEX_BRU], NormDirection[RIGHT], D3DCOLOR_RGBA(255, 255, 255, 128)},
+		{ vertexPos[VERTEX_FRD], NormDirection[RIGHT], D3DCOLOR_RGBA(255, 255, 255, 128)},
+		{ vertexPos[VERTEX_BRD], NormDirection[RIGHT], D3DCOLOR_RGBA(255, 255, 255, 128)},
+		//左
+		{ vertexPos[VERTEX_BLD], -NormDirection[RIGHT], D3DCOLOR_RGBA(255, 255, 255, 128)},
+		{ vertexPos[VERTEX_FLD], -NormDirection[RIGHT], D3DCOLOR_RGBA(255, 255, 255, 128)},
+		{ vertexPos[VERTEX_FLU], -NormDirection[RIGHT], D3DCOLOR_RGBA(255, 255, 255, 128)},
+
+		{ vertexPos[VERTEX_BLD], -NormDirection[RIGHT], D3DCOLOR_RGBA(255, 255, 255, 128)},
+		{ vertexPos[VERTEX_FLU], -NormDirection[RIGHT], D3DCOLOR_RGBA(255, 255, 255, 128)},
+		{ vertexPos[VERTEX_BLU], -NormDirection[RIGHT], D3DCOLOR_RGBA(255, 255, 255, 128)},
+
+		//上
+		{ vertexPos[VERTEX_FRU], NormDirection[UP], D3DCOLOR_RGBA(255, 255, 255, 128)},
+		{ vertexPos[VERTEX_BRU], NormDirection[UP], D3DCOLOR_RGBA(255, 255, 255, 128)},
+		{ vertexPos[VERTEX_BLU], NormDirection[UP], D3DCOLOR_RGBA(255, 255, 255, 128)},
+
+		{ vertexPos[VERTEX_FRU], NormDirection[UP], D3DCOLOR_RGBA(255, 255, 255, 128)},
+		{ vertexPos[VERTEX_BLU], NormDirection[UP], D3DCOLOR_RGBA(255, 255, 255, 128)},
+		{ vertexPos[VERTEX_FLU], NormDirection[UP], D3DCOLOR_RGBA(255, 255, 255, 128)},
+		//下
+		{ vertexPos[VERTEX_BRD], -NormDirection[UP], D3DCOLOR_RGBA(255, 255, 255, 128)},
+		{ vertexPos[VERTEX_FRD], -NormDirection[UP], D3DCOLOR_RGBA(255, 255, 255, 128)},
+		{ vertexPos[VERTEX_FLD], -NormDirection[UP], D3DCOLOR_RGBA(255, 255, 255, 128)},
+
+		{ vertexPos[VERTEX_BRD], -NormDirection[UP], D3DCOLOR_RGBA(255, 255, 255, 128)},
+		{ vertexPos[VERTEX_FLD], -NormDirection[UP], D3DCOLOR_RGBA(255, 255, 255, 128)},
+		{ vertexPos[VERTEX_BLD], -NormDirection[UP], D3DCOLOR_RGBA(255, 255, 255, 128)}
+	};
+
+	pDevice->SetTexture(0, NULL);//テクスチャをnullにする
+	//以前描画したテクスチャの情報が残っている可能性を排除
+	//多分テクスチャステージの設定等によっては必要なくなると思う
+
+	//頂点構造体の構成情報を描画デバイスに渡す
+	pDevice->SetFVF(FVF_TRIANGLE_LIST_VERTEX);
+
+	//描画
+	//トライアングルリストで描画
+	//12       : 描画する三角形の数
+	//v        : 頂点構造体の配列の先頭アドレス
+	//sizeof～ : 頂点構造体ひとつのデータの大きさ
+	return pDevice->DrawPrimitiveUP(D3DPT_TRIANGLELIST, 12, v, sizeof(Vertex));
+}

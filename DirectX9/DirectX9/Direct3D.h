@@ -65,6 +65,7 @@ class Sprite;
 //上のSpriteクラスと同様の理由
 class Texture;
 class MeshX;
+class OrientedBoundingBox;
 
 //シングルトンなクラスにする
 //インスタンスがひとつしか作られないことを保証するクラス
@@ -163,4 +164,7 @@ public :
 	bool LoadMeshX(MeshX& mesh, TCHAR*path);
 	//.x形式のメッシュ描画
 	void DrawMeshX(MeshX& mesh, D3DXMATRIXA16& matWorld);
+
+	//有向境界ボックスの描画関数を呼び出す
+	HRESULT CallDrawFunc(OrientedBoundingBox &obb);
 };
